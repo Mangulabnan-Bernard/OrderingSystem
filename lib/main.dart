@@ -64,5 +64,38 @@ class _UsersState extends State<Users> {
             final item = user[index];
             TextEditingController _password =
             TextEditingController(text: item['password']);
+                  return CupertinoListTile(
+              title: Text(item['username']),
+              trailing: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CupertinoButton(
+                    child: Icon(CupertinoIcons.trash_fill, color: CupertinoColors.destructiveRed),
+                    onPressed: () {
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (context) {
+                          return CupertinoAlertDialog(
+                            title: Text('Delete User'),
+                            content: Text('Are you sure you want to delete ${item['username']}?'),
+                            actions: [
+                              CupertinoButton(
+                                child: Text("Cancel", style: TextStyle(color: CupertinoColors.systemGrey)),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              CupertinoButton(
+                                child: Text("Delete", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                                onPressed: () {
+                                  deleteUser(item['id']);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  
   
   

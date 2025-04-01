@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   final String baseUrl = "http://192.168.68.112/devops/images/";
   final TextEditingController _adminPasswordController = TextEditingController();
   bool _isAdminPasswordCorrect = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -29,21 +30,64 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchProductData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      final response = await http.get(Uri.parse("http://192.168.68.112/devops/get_products.php"));
+      final response = await http.get(
+        Uri.parse("http://192.168.68.112/devops/get_products.php"),
+      );
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = jsonDecode(response.body);
         setState(() {
           _categories = data;
           if (_categories.isNotEmpty) {
             _selectedCategory = _categories[0]["category"];
           }
+          _isLoading = false;
         });
       } else {
         print("Failed to load products, status code: ${response.statusCode}");
+        setState(() {
+          _isLoading = false;
+        });
       }
     } catch (e) {
       print("Error fetching data: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse("http://192.168.68.112/devops/userAPI.php"),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Handle user data as needed
+        print("User data: $data");
+        setState(() {
+          _isLoading = false;
+        });
+      } else {
+        print("Failed to load user data, status code: ${response.statusCode}");
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -52,8 +96,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _checkAdminPassword(BuildContext context) async {
+    if (_isLoading) return; // Avoid multiple checks
+    setState(() {
+      _isLoading = true;
+    });
+
     showDialog(
       context: context,
+      barrierDismissible: false, // Disable tapping outside the dialog
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Enter Admin Password'),
@@ -65,19 +115,20 @@ class _HomePageState extends State<HomePage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                // Replace with your actual password check logic
                 if (_adminPasswordController.text == 'admin123') {
                   setState(() {
                     _isAdminPasswordCorrect = true;
                   });
                   Navigator.of(context).pop();
                   // Navigate to dashboard if password is correct
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     CupertinoPageRoute(builder: (context) => DashboardScreen()),
                   );
                 } else {
-                  // Show error if password is incorrect
+                  setState(() {
+                    _isLoading = false;
+                  });
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -111,9 +162,9 @@ class _HomePageState extends State<HomePage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.cart), label: 'Cart'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.cart), label: 'About'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.cart), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.heart), label: 'About'),
+          BottomNavigationBarItem(icon: Icon(CupertinoIcons.info), label: 'About'),
+          BottomNavigationBarItem(icon: Icon(CupertinoIcons.settings), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(CupertinoIcons.heart), label: 'Favorites'),
         ],
       ),
       tabBuilder: (context, index) {
@@ -131,7 +182,9 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       _buildCategoryMenu(),
                       Expanded(
-                        child: _buildProductList(),
+                        child: _isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : _buildProductList(),
                       ),
                     ],
                   ),
@@ -154,7 +207,6 @@ class _HomePageState extends State<HomePage> {
               ),
             );
           case 3:
-          // Before accessing dashboard, check for the admin password
             if (!_isAdminPasswordCorrect) {
               _checkAdminPassword(context);
               return const CupertinoPageScaffold(

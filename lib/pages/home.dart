@@ -38,37 +38,41 @@ class _LoginScreenState extends State<LoginScreen> {
           'password': password,
         },
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded', // Add this header
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
       ).timeout(Duration(seconds: 10), onTimeout: () {
         throw TimeoutException("The request timed out.");
       });
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
+      print("Raw server response: ${response.body}"); // Debug log
 
-        if (responseData['success'] == true) {
-          // Navigate to HomeScreen on successful login
-          Navigator.pushReplacement(
-            context,
-            CupertinoPageRoute(
-              builder: (context) => HomePage(onCartUpdated: (List<Map<String, dynamic>> value) {}),
-            ),
-          );
-        } else {
-          // Show error message from API
-          _showErrorDialog("Login Failed", responseData['message'] ?? "Invalid credentials.");
+      if (response.statusCode == 200) {
+        try {
+          print("Raw server response: ${response.body}"); // Debug log
+          final Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData['success'] == true) {
+            Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => HomePage(onCartUpdated: (List<Map<String, dynamic>> value) {}),
+              ),
+            );
+          } else {
+            _showErrorDialog("Login Failed", responseData['message'] ?? "Invalid credentials.");
+          }
+        } catch (e) {
+          print("Error parsing response: $e"); // Debug log
+          _showErrorDialog("Error", "Failed to parse server response.");
         }
       } else {
-        // Handle server error
         _showErrorDialog("Error", "Failed to connect to the server.");
       }
     } catch (e) {
-      // Catch other errors (e.g., network errors)
       _showErrorDialog("Error", e.toString());
     } finally {
       setState(() {
-        _isLoading = false; // Stop loading
+        _isLoading = false;
       });
     }
   }
@@ -95,38 +99,40 @@ class _LoginScreenState extends State<LoginScreen> {
           'password': password,
         },
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded', // Add this header
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
       ).timeout(Duration(seconds: 10), onTimeout: () {
         throw TimeoutException("The request timed out.");
       });
 
-      if (response.statusCode == 200) {
-        print("Response Body: ${response.body}"); // Debugging line
-        final Map<String, dynamic> responseData = json.decode(response.body);
+      print("Raw server response: ${response.body}"); // Debug log
 
-        if (responseData['success'] == true) {
-          // Navigate to HomeScreen on successful login
-          Navigator.pushReplacement(
-            context,
-            CupertinoPageRoute(
-              builder: (context) => HomePage(onCartUpdated: (List<Map<String, dynamic>> value) {}),
-            ),
-          );
-        } else {
-          // Show error message from API
-          _showErrorDialog("Account Creation Failed", responseData['message'] ?? "Error creating account.");
+      if (response.statusCode == 200) {
+        try {
+          final Map<String, dynamic> responseData = json.decode(response.body);
+
+          if (responseData['success'] == true) {
+            Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => HomePage(onCartUpdated: (List<Map<String, dynamic>> value) {}),
+              ),
+            );
+          } else {
+            _showErrorDialog("Account Creation Failed", responseData['message'] ?? "Error creating account.");
+          }
+        } catch (e) {
+          print("Error parsing response: $e"); // Debug log
+          _showErrorDialog("Error", "Failed to parse server response.");
         }
       } else {
-        // Handle server error
         _showErrorDialog("Error", "Failed to connect to the server.");
       }
     } catch (e) {
-      // Catch other errors (e.g., network errors)
       _showErrorDialog("Error", e.toString());
     } finally {
       setState(() {
-        _isLoading = false; // Stop loading
+        _isLoading = false;
       });
     }
   }
@@ -171,7 +177,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
               if (_isLoginVisible) ...[
-                Text("Welcome!", style: CupertinoTheme.of(context).textTheme.navLargeTitleTextStyle),
+                Text(
+                  _isCreateAccount ? "Create Account" : "Login",
+                  style: CupertinoTheme.of(context).textTheme.navLargeTitleTextStyle,
+                ),
                 SizedBox(height: 20),
                 CupertinoTextField(
                   controller: _usernameController,

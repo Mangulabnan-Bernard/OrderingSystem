@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import '../dashboard/dashboard.dart';
+import 'about.dart';
 import 'detailsproduct.dart';
 import 'cart.dart';
+import 'home.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,9 +21,7 @@ class _HomePageState extends State<HomePage> {
   List<dynamic> _categories = [];
   String _selectedCategory = "";
   final String baseUrl = "http://192.168.68.112/devops/images/";
-  final TextEditingController _adminPasswordController = TextEditingController();
-  bool _isAdminPasswordCorrect = false;
-  bool _isLoading = false;
+  bool _isAdmin = false;
 
   @override
   void initState() {
@@ -30,128 +30,103 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchProductData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
-      final response = await http.get(
-        Uri.parse("http://192.168.68.112/devops/get_products.php"),
-      );
+      final response = await http.get(Uri.parse("http://192.168.68.112/devops/get_products.php"));
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = json.decode(response.body);
         setState(() {
           _categories = data;
           if (_categories.isNotEmpty) {
             _selectedCategory = _categories[0]["category"];
           }
-          _isLoading = false;
-        });
-      } else {
-        print("Failed to load products, status code: ${response.statusCode}");
-        setState(() {
-          _isLoading = false;
         });
       }
     } catch (e) {
       print("Error fetching data: $e");
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
-  Future<void> _fetchUserData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+  Future<bool> _verifyAdminPassword(String enteredPassword) async {
     try {
-      final response = await http.get(
-        Uri.parse("http://192.168.68.112/devops/userAPI.php"),
-      );
+      final response = await http.get(Uri.parse("http://192.168.68.112/devops/userapi.php"));
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        // Handle user data as needed
-        print("User data: $data");
-        setState(() {
-          _isLoading = false;
-        });
-      } else {
-        print("Failed to load user data, status code: ${response.statusCode}");
-        setState(() {
-          _isLoading = false;
-        });
+        final List<dynamic> data = json.decode(response.body);
+        // Check if any admin user has the entered password
+        for (var user in data) {
+          if (user['role'] == 'admin' && user['password'] == enteredPassword) {
+            return true;
+          }
+        }
+        return false;
       }
+      return false;
     } catch (e) {
-      print("Error fetching user data: $e");
-      setState(() {
-        _isLoading = false;
-      });
+      print("Error verifying admin password: $e");
+      return false;
     }
+  }
+
+  Future<void> _showAdminPasswordDialog(BuildContext context) async {
+    TextEditingController passwordController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text("Enter Admin Password"),
+        content: CupertinoTextField(
+          controller: passwordController,
+          obscureText: true,
+          placeholder: "Password",
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text("Cancel"),
+            onPressed: () => Navigator.pop(context),
+          ),
+          CupertinoDialogAction(
+            child: const Text("Submit"),
+            onPressed: () async {
+              final enteredPassword = passwordController.text.trim();
+              bool isAdmin = await _verifyAdminPassword(enteredPassword);
+
+              if (isAdmin) {
+                setState(() {
+                  _isAdmin = true;
+                });
+                Navigator.pop(context); // Close the dialog
+                // Navigate to the DashboardScreen
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(builder: (context) => DashboardScreen()),
+                );
+              } else {
+                _showErrorDialog(context); // Show error if wrong password
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text("Access Denied"),
+        content: const Text("Incorrect password. Please try again."),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text("OK"),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
   }
 
   void _addToCart(Map<String, dynamic> item) {
     widget.onCartUpdated([item]);
-  }
-
-  Future<void> _checkAdminPassword(BuildContext context) async {
-    if (_isLoading) return; // Avoid multiple checks
-    setState(() {
-      _isLoading = true;
-    });
-
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Disable tapping outside the dialog
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Enter Admin Password'),
-          content: TextField(
-            controller: _adminPasswordController,
-            decoration: const InputDecoration(hintText: 'Password'),
-            obscureText: true,
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                if (_adminPasswordController.text == 'admin123') {
-                  setState(() {
-                    _isAdminPasswordCorrect = true;
-                  });
-                  Navigator.of(context).pop();
-                  // Navigate to dashboard if password is correct
-                  Navigator.pushReplacement(
-                    context,
-                    CupertinoPageRoute(builder: (context) => DashboardScreen()),
-                  );
-                } else {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Invalid Password'),
-                      content: const Text('The admin password is incorrect.'),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              },
-              child: const Text('Submit'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -163,65 +138,50 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.cart), label: 'Cart'),
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.info), label: 'About'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.settings), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.heart), label: 'Favorites'),
+          BottomNavigationBarItem(icon: Icon(CupertinoIcons.chart_bar), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(CupertinoIcons.power), label: 'Logout'),
         ],
       ),
       tabBuilder: (context, index) {
         switch (index) {
           case 0:
-            return CupertinoPageScaffold(
-              navigationBar: CupertinoNavigationBar(
-                middle: const Text("Home"),
-                backgroundColor: CupertinoColors.black,
-              ),
-              child: SafeArea(
-                child: Container(
-                  color: CupertinoColors.black,
-                  child: Column(
-                    children: [
-                      _buildCategoryMenu(),
-                      Expanded(
-                        child: _isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : _buildProductList(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
+            return _buildHomeScreen();
           case 1:
-            return CartScreen(cartItems: [], onCartUpdated: (List<Map<String, dynamic>> value) {});
+            return CartScreen(cartItems: [], onCartUpdated: (value) {});
           case 2:
-            return CupertinoPageScaffold(
-              child: Center(
-                child: const Text(
-                  "Welcome",
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: CupertinoColors.white,
-                  ),
-                ),
-              ),
-            );
+            return AboutPage();
           case 3:
-            if (!_isAdminPasswordCorrect) {
-              _checkAdminPassword(context);
-              return const CupertinoPageScaffold(
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-            return DashboardScreen();
+            return _isAdmin ? DashboardScreen() : _requestAdminAccess(context);
           case 4:
-            return DashboardScreen();
+            return _handleLogout(context);
           default:
             return const CupertinoPageScaffold(
-              child: Center(child: Text("Unknown tab")),
+              child: Center(child: Text("Page not found")),
             );
         }
       },
+    );
+  }
+
+  Widget _buildHomeScreen() {
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text("Home"),
+        backgroundColor: CupertinoColors.black,
+      ),
+      child: SafeArea(
+        child: Container(
+          color: CupertinoColors.black,
+          child: Column(
+            children: [
+              _buildCategoryMenu(),
+              Expanded(
+                child: _buildProductList(),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -308,48 +268,51 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Row(
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
-                  onError: (exception, stackTrace) {
-                    print("Failed to load image: $imageUrl");
-                  },
-                ),
-              ),
-            ),
+            Image.network(imageUrl, width: 80, height: 80, fit: BoxFit.cover),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    product["name"],
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: CupertinoColors.white),
-                  ),
-                  Text(
-                    product["description"],
-                    style: const TextStyle(color: CupertinoColors.inactiveGray),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "\$${product["price"]}",
-                    style: const TextStyle(fontSize: 16, color: CupertinoColors.activeOrange, fontWeight: FontWeight.bold),
-                  ),
-                  CupertinoButton(
-                    child: const Text("Add to Cart"),
-                    onPressed: () {
-                      _addToCart(product);
-                    },
-                  ),
+                  Text(product["name"], style: const TextStyle(fontSize: 18, color: CupertinoColors.white)),
+                  Text("\$${product["price"]}", style: const TextStyle(color: CupertinoColors.activeOrange)),
+                  CupertinoButton(child: const Text("Add to Cart"), onPressed: () => _addToCart(product)),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _requestAdminAccess(BuildContext context) {
+    return CupertinoPageScaffold(
+      child: Center(
+        child: CupertinoButton.filled(
+          child: const Text("Enter Admin Password"),
+          onPressed: () => _showAdminPasswordDialog(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _handleLogout(BuildContext context) {
+    return CupertinoPageScaffold(
+      child: Center(
+        child: CupertinoButton.filled(
+          child: const Text("Logout"),
+          onPressed: () {
+            // Perform logout logic here
+            // Clear any user session or tokens
+            // For example:
+            // await clearUserSession();
+
+            Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(builder: (context) => LoginScreen()),
+            );
+          },
         ),
       ),
     );

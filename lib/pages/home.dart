@@ -48,18 +48,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         try {
-          print("Raw server response: ${response.body}"); // Debug log
           final Map<String, dynamic> responseData = json.decode(response.body);
 
-          if (responseData['success'] == true) {
-            Navigator.pushReplacement(
-              context,
-              CupertinoPageRoute(
-                builder: (context) => HomePage(onCartUpdated: (List<Map<String, dynamic>> value) {}),
-              ),
-            );
+          if (responseData.containsKey('success')) {
+            if (responseData['success'] == true) {
+              Navigator.pushReplacement(
+                context,
+                CupertinoPageRoute(
+                  builder: (context) => HomePage(onCartUpdated: (List<Map<String, dynamic>> value) {}),
+                ),
+              );
+            } else {
+              _showErrorDialog("Login Failed", responseData['message'] ?? "Invalid credentials.");
+            }
           } else {
-            _showErrorDialog("Login Failed", responseData['message'] ?? "Invalid credentials.");
+            _showErrorDialog("Error", "Unexpected server response.");
           }
         } catch (e) {
           print("Error parsing response: $e"); // Debug log
@@ -111,15 +114,19 @@ class _LoginScreenState extends State<LoginScreen> {
         try {
           final Map<String, dynamic> responseData = json.decode(response.body);
 
-          if (responseData['success'] == true) {
-            Navigator.pushReplacement(
-              context,
-              CupertinoPageRoute(
-                builder: (context) => HomePage(onCartUpdated: (List<Map<String, dynamic>> value) {}),
-              ),
-            );
+          if (responseData.containsKey('success')) {
+            if (responseData['success'] == true) {
+              // Go back to the login screen after account creation
+              setState(() {
+                _isCreateAccount = false; // Show login screen
+              });
+              _usernameController.clear();
+              _passwordController.clear();
+            } else {
+              _showErrorDialog("Account Creation Failed", responseData['message'] ?? "Error creating account.");
+            }
           } else {
-            _showErrorDialog("Account Creation Failed", responseData['message'] ?? "Error creating account.");
+            _showErrorDialog("Error", "Unexpected server response.");
           }
         } catch (e) {
           print("Error parsing response: $e"); // Debug log
@@ -148,6 +155,28 @@ class _LoginScreenState extends State<LoginScreen> {
           CupertinoDialogAction(
             child: Text("OK"),
             onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleLogout(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to logout?"),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text("Cancel"),
+            onPressed: () => Navigator.pop(context),
+          ),
+          CupertinoDialogAction(
+            child: const Text("Logout"),
+            onPressed: () {
+              Navigator.popUntil(context, (route) => route.isFirst);
+            },
           ),
         ],
       ),
@@ -201,6 +230,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Text(_isCreateAccount ? "Create Account" : "Login"),
                   onPressed: _isCreateAccount ? _createAccount : _login,
                 ),
+                if (_isCreateAccount) ...[
+                  CupertinoButton(
+                    child: Text("Cancel"),
+                    onPressed: () {
+                      setState(() {
+                        _isCreateAccount = false;
+                      });
+                    },
+                  ),
+                ],
                 if (!_isCreateAccount) ...[
                   CupertinoButton(
                     child: Text("Create Account"),

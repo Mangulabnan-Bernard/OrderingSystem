@@ -47,13 +47,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showAdminPasswordDialog(BuildContext context) async {
-    print("Showing admin password dialog"); // Debugging
     TextEditingController passwordController = TextEditingController();
 
     await showDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text("Enter Admin Password"),
+        title: const Text("Access Denied"),
         content: CupertinoTextField(
           controller: passwordController,
           obscureText: true,
@@ -68,7 +67,6 @@ class _HomePageState extends State<HomePage> {
             child: const Text("Submit"),
             onPressed: () async {
               final enteredPassword = passwordController.text.trim();
-              print("Entered password: $enteredPassword"); // Debugging
               if (enteredPassword == 'admin123') {
                 setState(() {
                   _isAdmin = true;
@@ -105,10 +103,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _addToCart(Map<String, dynamic> item) {
-    widget.onCartUpdated([item]);
-  }
-
   @override
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
@@ -116,7 +110,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: CupertinoColors.black,
         items: const [
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.cart), label: 'Cart'),
+          // BottomNavigationBarItem(icon: Icon(CupertinoIcons.cart), label: 'Cart'),
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.info), label: 'About'),
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.chart_bar), label: 'Dashboard'),
           BottomNavigationBarItem(icon: Icon(CupertinoIcons.power), label: 'Logout'),
@@ -127,12 +121,10 @@ class _HomePageState extends State<HomePage> {
           case 0:
             return _buildHomeScreen();
           case 1:
-            return CartScreen(cartItems: [], onCartUpdated: (value) {});
-          case 2:
             return AboutPage();
-          case 3:
+          case 2:
             return _isAdmin ? DashboardScreen() : _requestAdminAccess(context);
-          case 4:
+          case 3:
             return _handleLogout(context);
           default:
             return const CupertinoPageScaffold(
@@ -255,8 +247,26 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(product["name"], style: const TextStyle(fontSize: 18, color: CupertinoColors.white)),
+                  const SizedBox(height: 4),
+                  Text(product["description"], style: const TextStyle(fontSize: 14, color: CupertinoColors.inactiveGray)),
+                  const SizedBox(height: 4),
                   Text("\$${product["price"]}", style: const TextStyle(color: CupertinoColors.activeOrange)),
-                  CupertinoButton(child: const Text("Add to Cart"), onPressed: () => _addToCart(product)),
+                  const SizedBox(height: 8),
+                  CupertinoButton(
+                    child: const Text("Buy Now"),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => MilkTeaDetailsScreen(
+                            product: product,
+                            onCartUpdated: (List<Map<String, dynamic>> value) {},
+                            cartItems: [],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -269,10 +279,14 @@ class _HomePageState extends State<HomePage> {
   Widget _requestAdminAccess(BuildContext context) {
     return CupertinoPageScaffold(
       child: Center(
-        child: CupertinoButton.filled(
-          child: const Text("Enter Admin Password"),
+        child: CupertinoButton(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          color: CupertinoColors.systemGrey, // Set the background color to gray
+          child: const Text(
+            "Access Denied",
+            style: TextStyle(color: CupertinoColors.white), // Optional: Change text color to white for contrast
+          ),
           onPressed: () {
-            print("Admin button pressed"); // Debugging
             _showAdminPasswordDialog(context);
           },
         ),

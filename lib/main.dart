@@ -24,5 +24,45 @@ class _UsersState extends State<Users> {
       user = jsonDecode(response.body);
     });
   }
+  Future<void> updateUser(String id, String password) async {
+    await http.post(
+      Uri.parse(server + "/devops/update.php"),
+      body: {"id": id, "password": password},
+    );
+    getData();
+  }
+
+  Future<void> deleteUser(String id) async {
+    await http.post(
+      Uri.parse(server + "/devops/delete.php"),
+      body: {"id": id},
+    );
+    getData();
+  }
+
+  @override
+  void initState() {
+    getData();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text("Users"),
+        leading: CupertinoNavigationBarBackButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
+      child: SafeArea(
+        child: ListView.builder(
+          itemCount: user.length,
+          itemBuilder: (context, index) {
+            final item = user[index];
+            TextEditingController _password =
+            TextEditingController(text: item['password']);
   
   

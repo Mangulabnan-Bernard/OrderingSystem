@@ -96,6 +96,44 @@ class _UsersState extends State<Users> {
                       );
                     },
                   ),
-                  
+                        
+                  CupertinoButton(
+                    child: Icon(CupertinoIcons.pencil, color: CupertinoColors.systemBlue),
+                    onPressed: () {
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (context) {
+                          return CupertinoAlertDialog(
+                            title: Text('Change Password for ${item['username']}'),
+                            content: CupertinoTextField(
+                              controller: _password,
+                            ),
+                            actions: [
+                              CupertinoButton(
+                                child: Text("Close", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              CupertinoButton(
+                                child: Text("Save", style: TextStyle(color: CupertinoColors.systemBlue)),
+                                onPressed: () {
+                                  updateUser(item['id'], _password.text);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
   
   

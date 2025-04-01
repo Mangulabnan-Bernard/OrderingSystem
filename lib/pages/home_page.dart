@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../dashboard/dashboard.dart';
 import 'about.dart';
 import 'detailsproduct.dart';
 import 'cart.dart';
 import 'home.dart';
-import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
   final ValueChanged<List<Map<String, dynamic>>> onCartUpdated;
@@ -46,27 +46,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<bool> _verifyAdminPassword(String enteredPassword) async {
-    try {
-      final response = await http.get(Uri.parse("http://192.168.68.112/devops/userapi.php"));
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        // Check if any admin user has the entered password
-        for (var user in data) {
-          if (user['role'] == 'admin' && user['password'] == enteredPassword) {
-            return true;
-          }
-        }
-        return false;
-      }
-      return false;
-    } catch (e) {
-      print("Error verifying admin password: $e");
-      return false;
-    }
-  }
-
   Future<void> _showAdminPasswordDialog(BuildContext context) async {
+    print("Showing admin password dialog"); // Debugging
     TextEditingController passwordController = TextEditingController();
 
     await showDialog(
@@ -87,19 +68,18 @@ class _HomePageState extends State<HomePage> {
             child: const Text("Submit"),
             onPressed: () async {
               final enteredPassword = passwordController.text.trim();
-              bool isAdmin = await _verifyAdminPassword(enteredPassword);
-
-              if (isAdmin) {
+              print("Entered password: $enteredPassword"); // Debugging
+              if (enteredPassword == 'admin123') {
                 setState(() {
                   _isAdmin = true;
                 });
                 Navigator.pop(context); // Close the dialog
-                // Navigate to the DashboardScreen
                 Navigator.push(
                   context,
                   CupertinoPageRoute(builder: (context) => DashboardScreen()),
                 );
               } else {
+                Navigator.pop(context); // Close the dialog
                 _showErrorDialog(context); // Show error if wrong password
               }
             },
@@ -291,7 +271,10 @@ class _HomePageState extends State<HomePage> {
       child: Center(
         child: CupertinoButton.filled(
           child: const Text("Enter Admin Password"),
-          onPressed: () => _showAdminPasswordDialog(context),
+          onPressed: () {
+            print("Admin button pressed"); // Debugging
+            _showAdminPasswordDialog(context);
+          },
         ),
       ),
     );
@@ -303,11 +286,6 @@ class _HomePageState extends State<HomePage> {
         child: CupertinoButton.filled(
           child: const Text("Logout"),
           onPressed: () {
-            // Perform logout logic here
-            // Clear any user session or tokens
-            // For example:
-            // await clearUserSession();
-
             Navigator.pushReplacement(
               context,
               CupertinoPageRoute(builder: (context) => LoginScreen()),

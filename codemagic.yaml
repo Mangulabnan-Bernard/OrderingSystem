@@ -1,0 +1,31 @@
+workflows:
+  android-release:
+    name: Android Release
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+    scripts:
+      # Set up Flutter SDK
+      - name: Set up Flutter
+        script: flutter --version
+
+      # Get dependencies
+      - name: Get dependencies
+        script: flutter pub get
+
+      # Decode key.properties from Base64
+      - name: Decode key.properties
+        script: |
+          echo "$CM_KEY_PROPERTIES" | base64 --decode > android/key.properties
+
+      # Decode keystore from Base64
+      - name: Decode keystore
+        script: |
+          echo "$CM_BASE64" | base64 --decode > android/app/milkteashop.keystore
+
+      # Build AAB in release mode (ensure release flag is set)
+      - name: Build AAB
+        script: flutter build appbundle --release
+
+    artifacts:
+      - "build/app/outputs/bundle/release/app-release.aab"

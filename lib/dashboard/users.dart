@@ -66,67 +66,76 @@ class _UsersState extends State<Users> {
             TextEditingController _password =
             TextEditingController(text: item['password']);
 
+            // Skip delete and update functionality for admin user
+            bool isAdmin = item['username'] == "admin"; // Check if the user is admin
+
             return CupertinoListTile(
               title: Text(item['username']),
               trailing: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  CupertinoButton(
-                    child: Icon(CupertinoIcons.trash_fill, color: CupertinoColors.destructiveRed),
-                    onPressed: () {
-                      showCupertinoDialog(
-                        context: context,
-                        builder: (context) {
-                          return CupertinoAlertDialog(
-                            title: Text('Delete User'),
-                            content: Text('Are you sure you want to delete ${item['username']}?'),
-                            actions: [
-                              CupertinoButton(
-                                child: Text("Cancel", style: TextStyle(color: CupertinoColors.systemGrey)),
-                                onPressed: () => Navigator.pop(context),
+                  // Only show the delete button if the user is not admin
+                  if (!isAdmin) ...[
+                    CupertinoButton(
+                      child: Icon(CupertinoIcons.trash_fill, color: CupertinoColors.destructiveRed),
+                      onPressed: () {
+                        showCupertinoDialog(
+                          context: context,
+                          builder: (context) {
+                            return CupertinoAlertDialog(
+                              title: Text('Delete User'),
+                              content: Text('Are you sure you want to delete ${item['username']}?'),
+                              actions: [
+                                CupertinoButton(
+                                  child: Text("Cancel", style: TextStyle(color: CupertinoColors.systemGrey)),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                                CupertinoButton(
+                                  child: Text("Delete", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                                  onPressed: () {
+                                    deleteUser(item['id']);
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                  // Only show the update button if the user is not admin
+                  if (!isAdmin) ...[
+                    CupertinoButton(
+                      child: Icon(CupertinoIcons.pencil, color: CupertinoColors.systemBlue),
+                      onPressed: () {
+                        showCupertinoDialog(
+                          context: context,
+                          builder: (context) {
+                            return CupertinoAlertDialog(
+                              title: Text('Change Password for ${item['username']}'),
+                              content: CupertinoTextField(
+                                controller: _password,
                               ),
-                              CupertinoButton(
-                                child: Text("Delete", style: TextStyle(color: CupertinoColors.destructiveRed)),
-                                onPressed: () {
-                                  deleteUser(item['id']);
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  CupertinoButton(
-                    child: Icon(CupertinoIcons.pencil, color: CupertinoColors.systemBlue),
-                    onPressed: () {
-                      showCupertinoDialog(
-                        context: context,
-                        builder: (context) {
-                          return CupertinoAlertDialog(
-                            title: Text('Change Password for ${item['username']}'),
-                            content: CupertinoTextField(
-                              controller: _password,
-                            ),
-                            actions: [
-                              CupertinoButton(
-                                child: Text("Close", style: TextStyle(color: CupertinoColors.destructiveRed)),
-                                onPressed: () => Navigator.pop(context),
-                              ),
-                              CupertinoButton(
-                                child: Text("Save", style: TextStyle(color: CupertinoColors.systemBlue)),
-                                onPressed: () {
-                                  updateUser(item['id'], _password.text);
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
+                              actions: [
+                                CupertinoButton(
+                                  child: Text("Close", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                                CupertinoButton(
+                                  child: Text("Save", style: TextStyle(color: CupertinoColors.systemBlue)),
+                                  onPressed: () {
+                                    updateUser(item['id'], _password.text);
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ),
             );

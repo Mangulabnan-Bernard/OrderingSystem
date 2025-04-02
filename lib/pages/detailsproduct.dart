@@ -38,18 +38,8 @@ class _MilkTeaDetailsScreenState extends State<MilkTeaDetailsScreen> {
   }
 
   void showSuccessMessage(BuildContext context) {
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
 
-        actions: [
-          // CupertinoDialogAction(
-          //   child:   ,
-          //   onPressed: () => Navigator.pop(context),
-          // ),
-        ],
-      ),
-    );
+
   }
 
   Future<void> addToCart(BuildContext context) async {

@@ -30,7 +30,6 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception("Please enter both username and password.");
       }
 
-      // Call the login API
       final response = await http.post(
         Uri.parse('http://192.168.68.112/devops/login.php'),
         body: {
@@ -52,6 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (responseData.containsKey('success')) {
             if (responseData['success'] == true) {
+              // Login success, navigate to HomePage
               Navigator.pushReplacement(
                 context,
                 CupertinoPageRoute(
@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
             _showErrorDialog("Error", "Unexpected server response.");
           }
         } catch (e) {
-          print("Error parsing response: $e"); // Debug log
+          print("Error parsing response: $e");
           _showErrorDialog("Error", "Failed to parse server response.");
         }
       } else {
@@ -79,6 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
+
 
   // Function to handle account creation
   Future<void> _createAccount() async {

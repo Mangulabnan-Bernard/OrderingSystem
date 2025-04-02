@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../dashboard/dashboard.dart';
 import 'about.dart';
@@ -22,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   String _selectedCategory = "";
   final String baseUrl = "http://192.168.68.112/devops/images/";
   bool _isAdmin = false;
+  String _adminErrorMessage = "";
 
   @override
   void initState() {
@@ -31,7 +31,8 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchProductData() async {
     try {
-      final response = await http.get(Uri.parse("http://192.168.68.112/devops/get_products.php"));
+      final response = await http.get(
+          Uri.parse("http://192.168.68.112/devops/get_products.php"));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -46,61 +47,21 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _showAdminPasswordDialog(BuildContext context) async {
-    TextEditingController passwordController = TextEditingController();
-
-    await showDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text("Access Denied"),
-        content: CupertinoTextField(
-          controller: passwordController,
-          obscureText: true,
-          placeholder: "Password",
-        ),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text("Cancel"),
-            onPressed: () => Navigator.pop(context),
-          ),
-          CupertinoDialogAction(
-            child: const Text("Submit"),
-            onPressed: () async {
-              final enteredPassword = passwordController.text.trim();
-              if (enteredPassword == 'admin123') {
-                setState(() {
-                  _isAdmin = true;
-                });
-                Navigator.pop(context); // Close the dialog
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute(builder: (context) => DashboardScreen()),
-                );
-              } else {
-                Navigator.pop(context); // Close the dialog
-                _showErrorDialog(context); // Show error if wrong password
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showErrorDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text("Access Denied"),
-        content: const Text("Incorrect password. Please try again."),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text("OK"),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
-    );
+  void _handleAdminPassword(String enteredPassword) {
+    if (enteredPassword == 'test123') { // Updated password to 'test123'
+      setState(() {
+        _isAdmin = true;
+        _adminErrorMessage = "";
+      });
+      Navigator.push(
+        context,
+        CupertinoPageRoute(builder: (context) => DashboardScreen()),
+      );
+    } else {
+      setState(() {
+        _adminErrorMessage = "Incorrect password. Please try again.";
+      });
+    }
   }
 
   @override
@@ -109,11 +70,15 @@ class _HomePageState extends State<HomePage> {
       tabBar: CupertinoTabBar(
         backgroundColor: CupertinoColors.black,
         items: const [
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.home), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.home), label: 'Home'),
           // BottomNavigationBarItem(icon: Icon(CupertinoIcons.cart), label: 'Cart'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.info), label: 'About'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.chart_bar), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.power), label: 'Logout'),
+          BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.info), label: 'About'),
+          BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.chart_bar), label: 'Dashboard'),
+          BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.power), label: 'Logout'),
         ],
       ),
       tabBuilder: (context, index) {
@@ -170,7 +135,9 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: CupertinoButton(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                color: isSelected ? CupertinoColors.activeOrange : CupertinoColors.inactiveGray,
+                color: isSelected
+                    ? CupertinoColors.activeOrange
+                    : CupertinoColors.inactiveGray,
                 onPressed: () {
                   setState(() {
                     _selectedCategory = category["category"];
@@ -204,10 +171,13 @@ class _HomePageState extends State<HomePage> {
       children: [
         Text(
           category["category"],
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: CupertinoColors.white),
+          style: const TextStyle(fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: CupertinoColors.white),
         ),
         const SizedBox(height: 8),
-        ...category["products"].map<Widget>((product) => _buildProductItem(product)).toList(),
+        ...category["products"].map<Widget>((product) =>
+            _buildProductItem(product)).toList(),
         const SizedBox(height: 16),
       ],
     );
@@ -223,11 +193,12 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           CupertinoPageRoute(
-            builder: (context) => MilkTeaDetailsScreen(
-              product: product,
-              onCartUpdated: (List<Map<String, dynamic>> value) {},
-              cartItems: [],
-            ),
+            builder: (context) =>
+                MilkTeaDetailsScreen(
+                  product: product,
+                  onCartUpdated: (List<Map<String, dynamic>> value) {},
+                  cartItems: [],
+                ),
           ),
         );
       },
@@ -246,11 +217,14 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(product["name"], style: const TextStyle(fontSize: 18, color: CupertinoColors.white)),
+                  Text(product["name"], style: const TextStyle(
+                      fontSize: 18, color: CupertinoColors.white)),
                   const SizedBox(height: 4),
-                  Text(product["description"], style: const TextStyle(fontSize: 14, color: CupertinoColors.inactiveGray)),
+                  Text(product["description"], style: const TextStyle(
+                      fontSize: 14, color: CupertinoColors.inactiveGray)),
                   const SizedBox(height: 4),
-                  Text("\$${product["price"]}", style: const TextStyle(color: CupertinoColors.activeOrange)),
+                  Text("\$${product["price"]}", style: const TextStyle(
+                      color: CupertinoColors.activeOrange)),
                   const SizedBox(height: 8),
                   CupertinoButton(
                     child: const Text("Buy Now"),
@@ -258,11 +232,13 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         CupertinoPageRoute(
-                          builder: (context) => MilkTeaDetailsScreen(
-                            product: product,
-                            onCartUpdated: (List<Map<String, dynamic>> value) {},
-                            cartItems: [],
-                          ),
+                          builder: (context) =>
+                              MilkTeaDetailsScreen(
+                                product: product,
+                                onCartUpdated: (
+                                    List<Map<String, dynamic>> value) {},
+                                cartItems: [],
+                              ),
                         ),
                       );
                     },
@@ -277,22 +253,64 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _requestAdminAccess(BuildContext context) {
+    TextEditingController passwordController = TextEditingController();
+
     return CupertinoPageScaffold(
-      child: Center(
-        child: CupertinoButton(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          color: CupertinoColors.systemGrey, // Set the background color to gray
-          child: const Text(
-            "Access Denied",
-            style: TextStyle(color: CupertinoColors.white), // Optional: Change text color to white for contrast
-          ),
-          onPressed: () {
-            _showAdminPasswordDialog(context);
-          },
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Message at the top
+            Text(
+              "This is restricted Area. Please put admin password to access",
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: CupertinoColors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+
+            // Password input field
+            CupertinoTextField(
+              controller: passwordController,
+              obscureText: true,
+              placeholder: "Enter Admin Password",
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: CupertinoColors.darkBackgroundGray,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Access Granted button
+            CupertinoButton(
+              color: CupertinoColors.systemGrey3,
+              child: const Text("Access Granted"),
+              onPressed: () {
+                _handleAdminPassword(passwordController.text.trim());
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Error message (if any)
+            if (_adminErrorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Text(
+                  _adminErrorMessage,
+                  style: const TextStyle(color: CupertinoColors.destructiveRed),
+                ),
+              ),
+          ],
         ),
       ),
     );
   }
+
 
   Widget _handleLogout(BuildContext context) {
     return CupertinoPageScaffold(
@@ -300,9 +318,36 @@ class _HomePageState extends State<HomePage> {
         child: CupertinoButton.filled(
           child: const Text("Logout"),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              CupertinoPageRoute(builder: (context) => LoginScreen()),
+            // Show confirmation dialog
+            showCupertinoDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return CupertinoAlertDialog(
+                  title: const Text('Confirm Logout'),
+                  content: const Text('Are you sure you want to log out?'),
+                  actions: <Widget>[
+                    CupertinoDialogAction(
+                      child: const Text('No'),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                      },
+                    ),
+                    CupertinoDialogAction(
+                      child: const Text('Yes'),
+                      onPressed: () {
+                        // Remove all previous routes and go to LoginScreen
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) => LoginScreen()),
+                              (Route<
+                              dynamic> route) => false, // Remove all previous routes
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),

@@ -1,8 +1,6 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'pages/home.dart'; // Import HomeScreen
-import 'pages/cart.dart'; // Import CartScreen
 
 void main() {
   runApp(const MyApp());
@@ -41,6 +39,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.black, // Dark background
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -48,8 +47,12 @@ class _SplashScreenState extends State<SplashScreen> {
             const CupertinoActivityIndicator(radius: 15),
             const SizedBox(height: 20),
             const Text(
-              "Welcome to Coffee Shop",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              "Welcome to MilkTea Shop",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: CupertinoColors.white,
+              ),
             ),
           ],
         ),

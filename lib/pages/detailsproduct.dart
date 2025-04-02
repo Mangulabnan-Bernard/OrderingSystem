@@ -43,10 +43,10 @@ class _MilkTeaDetailsScreenState extends State<MilkTeaDetailsScreen> {
       builder: (context) => CupertinoAlertDialog(
 
         actions: [
-          CupertinoDialogAction(
-            child: Text("OK"),
-            onPressed: () => Navigator.pop(context),
-          ),
+          // CupertinoDialogAction(
+          //   child:   ,
+          //   onPressed: () => Navigator.pop(context),
+          // ),
         ],
       ),
     );

@@ -18,12 +18,12 @@ class Users extends StatefulWidget {
 }
 
 class _UsersState extends State<Users> {
-  String server = "http://192.168.68.112";
+  String server = "https://yourmilktea.com";
   List<dynamic> users = [];
 
   Future<void> getData() async {
     try {
-      final response = await http.get(Uri.parse("$server/devops/userAPI.php"));
+      final response = await http.get(Uri.parse("$server/userAPI.php"));
       if (response.statusCode == 200) {
         setState(() {
           users = jsonDecode(response.body);
@@ -63,7 +63,7 @@ class _UsersState extends State<Users> {
   Future<void> updateUser(String id, String password) async {
     try {
       await http.post(
-        Uri.parse("$server/devops/update.php"),
+        Uri.parse("$server/update.php"),
         body: {"id": id, "password": password},
       );
       getData();
@@ -87,7 +87,7 @@ class _UsersState extends State<Users> {
   Future<void> deleteUser(String id) async {
     try {
       await http.post(
-        Uri.parse("$server/devops/delete.php"),
+        Uri.parse("$server/delete.php"),
         body: {"id": id},
       );
       getData();

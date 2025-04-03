@@ -19,7 +19,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<dynamic> _categories = [];
   String _selectedCategory = "";
-  final String baseUrl = "http://192.168.68.112/devops/images/";
+  final String baseUrl = "https://yourmilktea.com/images/";
   bool _isAdmin = false;
   String _adminErrorMessage = "";
 
@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchProductData() async {
     try {
       final response = await http.get(
-          Uri.parse("http://192.168.68.112/devops/get_products.php"));
+          Uri.parse("https://yourmilktea.com/get_products.php"));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {

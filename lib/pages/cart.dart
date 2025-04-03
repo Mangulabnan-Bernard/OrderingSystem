@@ -95,7 +95,7 @@ class _CartScreenState extends State<CartScreen> {
     }
 
     // Proceed with the checkout process
-    final url = Uri.parse('http://192.168.68.112/devops/checkout.php');
+    final url = Uri.parse('https://yourmilktea.com/checkout.php');
     try {
       for (var item in widget.cartItems) {
         final response = await http.post(url, body: {
@@ -242,10 +242,10 @@ class _CartScreenState extends State<CartScreen> {
                 itemBuilder: (context, index) {
                   var item = widget.cartItems[index];
                   String imageUrl = item['image'];
-                  if (imageUrl.startsWith('http://192.168.68.112/devops/images/')) {
-                    imageUrl = imageUrl.replaceFirst('http://192.168.68.112/devops/images/', '');
+                  if (imageUrl.startsWith('https://yourmilktea.com/images/')) {
+                    imageUrl = imageUrl.replaceFirst('https://yourmilktea.com/devops/images/', '');
                   }
-                  String imageUrlWithBase = 'http://192.168.68.112/devops/images/$imageUrl';
+                  String imageUrlWithBase = 'https://yourmilktea.com/images/$imageUrl';
 
                   return Container(
                     padding: const EdgeInsets.all(16),

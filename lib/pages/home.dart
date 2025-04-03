@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       final response = await http.post(
-        Uri.parse('https://yourmilktea.com/login.php'),
+        Uri.parse('https://yourmilkteashop.com/login.php'),
         body: {
           'username': username,
           'password': password,
@@ -97,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Call the create account API
       final response = await http.post(
-        Uri.parse('https://yourmilktea.com/signup.php'),
+        Uri.parse('https://yourmilkteashop.com/signup.php'),
         body: {
           'username': username,
           'password': password,

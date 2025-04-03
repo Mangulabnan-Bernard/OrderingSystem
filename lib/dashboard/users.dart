@@ -18,7 +18,7 @@ class Users extends StatefulWidget {
 }
 
 class _UsersState extends State<Users> {
-  String server = "https://yourmilktea.com";
+  String server = "https://yourmilkteashop.com";
   List<dynamic> users = [];
 
   Future<void> getData() async {

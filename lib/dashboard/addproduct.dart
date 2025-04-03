@@ -32,7 +32,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     setState(() => isLoadingCategories = true);
 
     try {
-      final response = await http.get(Uri.parse('https://yourmilktea.com/get_categories.php'));
+      final response = await http.get(Uri.parse('https://yourmilkteashop.com/get_categories.php'));
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
@@ -96,7 +96,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
               var request = http.MultipartRequest(
                 "POST",
-                Uri.parse("https://yourmilktea.com/add_product.php"),
+                Uri.parse("https://yourmilkteashop.com/add_product.php"),
               );
 
               request.fields["name"] = nameController.text;

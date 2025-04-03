@@ -21,7 +21,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Future<void> fetchProducts() async {
     try {
       final response =
-      await http.get(Uri.parse("https://yourmilktea.com/get_products.php"));
+      await http.get(Uri.parse("https://yourmilkteashop.com/get_products.php"));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -134,7 +134,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              "https://yourmilktea.com/images/$image",
+                              "https://yourmilkteashop.com/images/$image",
                               width: 60,
                               height: 60,
                               fit: BoxFit.cover,

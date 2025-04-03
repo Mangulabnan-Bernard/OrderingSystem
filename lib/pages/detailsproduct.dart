@@ -73,10 +73,12 @@ class _MilkTeaDetailsScreenState extends State<MilkTeaDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     String imageUrl = widget.product['image'];
-    if (imageUrl.startsWith('https://yourmilkteashop.com/images/')) {
-      imageUrl = imageUrl.replaceFirst('https://yourmilkteashop.com/images/', '');
+
+    // Only prepend the base URL if the image URL is not fully qualified
+    if (!imageUrl.startsWith('http')) {
+      imageUrl = 'https://yourmilkteashop.com/images/$imageUrl';
     }
-    String imageUrlWithBase = 'https://yourmilkteashop.com/images/$imageUrl';
+
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -94,7 +96,7 @@ class _MilkTeaDetailsScreenState extends State<MilkTeaDetailsScreen> {
       child: SafeArea(
         child: Column(
           children: [
-            Image.network(imageUrlWithBase, width: double.infinity, height: 300, fit: BoxFit.cover),
+            Image.network(imageUrl, width: double.infinity, height: 300, fit: BoxFit.cover),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(

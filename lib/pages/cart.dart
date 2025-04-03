@@ -243,9 +243,12 @@ class _CartScreenState extends State<CartScreen> {
                   var item = widget.cartItems[index];
                   String imageUrl = item['image'];
                   if (imageUrl.startsWith('https://yourmilkteashop.com/images/')) {
-                    imageUrl = imageUrl.replaceFirst('https://yourmilkteashop.com/devops/images/', '');
+                    imageUrl = imageUrl.replaceFirst('https://yourmilkteashop.com/images/', '');
                   }
-                  String imageUrlWithBase = 'https://yourmilkteashop.com/images/$imageUrl';
+                  String imageUrlWithBase = imageUrl.startsWith('http')
+                      ? imageUrl
+                      : 'https://yourmilkteashop.com/images/$imageUrl';
+
 
                   return Container(
                     padding: const EdgeInsets.all(16),

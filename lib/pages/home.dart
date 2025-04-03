@@ -21,15 +21,12 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _isLoading = true;
     });
-
     try {
       final String username = _usernameController.text.trim();
       final String password = _passwordController.text.trim();
-
       if (username.isEmpty || password.isEmpty) {
         throw Exception("Please enter both username and password.");
       }
-
       final response = await http.post(
         Uri.parse('https://yourmilkteashop.com/login.php'),
         body: {
@@ -44,18 +41,17 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       print("Raw server response: ${response.body}"); // Debug log
-
       if (response.statusCode == 200) {
         try {
           final Map<String, dynamic> responseData = json.decode(response.body);
-
           if (responseData.containsKey('success')) {
             if (responseData['success'] == true) {
               // Login success, navigate to HomePage
               Navigator.pushReplacement(
                 context,
                 CupertinoPageRoute(
-                  builder: (context) => HomePage(onCartUpdated: (List<Map<String, dynamic>> value) {}),
+                  builder: (context) =>
+                      HomePage(onCartUpdated: (List<Map<String, dynamic>> value) {}),
                 ),
               );
             } else {
@@ -80,21 +76,17 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-
   // Function to handle account creation
   Future<void> _createAccount() async {
     setState(() {
       _isLoading = true;
     });
-
     try {
       final String username = _usernameController.text.trim();
       final String password = _passwordController.text.trim();
-
       if (username.isEmpty || password.isEmpty) {
         throw Exception("Please enter both username and password.");
       }
-
       // Call the create account API
       final response = await http.post(
         Uri.parse('https://yourmilkteashop.com/signup.php'),
@@ -110,11 +102,9 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       print("Raw server response: ${response.body}"); // Debug log
-
       if (response.statusCode == 200) {
         try {
           final Map<String, dynamic> responseData = json.decode(response.body);
-
           if (responseData.containsKey('success')) {
             if (responseData['success'] == true) {
               // Go back to the login screen after account creation
@@ -162,34 +152,26 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _handleLogout(BuildContext context) {
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text("Logout"),
-        content: const Text("Are you sure you want to logout?"),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text("Cancel"),
-            onPressed: () => Navigator.pop(context),
-          ),
-          CupertinoDialogAction(
-            child: const Text("Logout"),
-            onPressed: () {
-              Navigator.popUntil(context, (route) => route.isFirst);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: Text("Welcome to Shop"),
+        middle: Text(_isLoginVisible ? (_isCreateAccount ? "Create Account" : "Sign In") : "Welcome to Shop"),
         backgroundColor: CupertinoColors.black,
+        trailing: _isLoginVisible
+            ? CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: Text("Cancel", style: TextStyle(color: CupertinoColors.white)),
+          onPressed: () {
+            setState(() {
+              _isLoginVisible = false;
+              _isCreateAccount = false;
+              _usernameController.clear();
+              _passwordController.clear();
+            });
+          },
+        )
+            : null, // No cancel button on the initial screen
       ),
       backgroundColor: CupertinoColors.black,
       child: Padding(
@@ -198,23 +180,61 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Big Welcome Text
+              if (!_isLoginVisible)
+                Text(
+                  "Welcome to Shop",
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: CupertinoColors.white,
+                  ),
+                ),
+              SizedBox(height: !_isLoginVisible ? 40 : 0),
+
+              // Buttons for Already Have Account / Don't Have Account
               if (!_isLoginVisible) ...[
                 CupertinoButton(
-                  child: Text("Sign In", style: TextStyle(color: CupertinoColors.white)),
+                  child: Text(
+                    "Already have an account?",
+                    style: TextStyle(color: CupertinoColors.white),
+                  ),
                   onPressed: () {
                     setState(() {
                       _isLoginVisible = true;
+                      _isCreateAccount = false;
                     });
                   },
                   color: CupertinoColors.activeBlue,
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   borderRadius: BorderRadius.circular(15),
                 ),
+                SizedBox(height: 10),
+                CupertinoButton(
+                  child: Text(
+                    "Don't have an account? ",
+                    style: TextStyle(color: CupertinoColors.white),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isLoginVisible = true;
+                      _isCreateAccount = true;
+                    });
+                  },
+                  color: CupertinoColors.activeGreen,
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  borderRadius: BorderRadius.circular(15),
+                ),
               ],
+
+              // Sign In or Create Account Form
               if (_isLoginVisible) ...[
                 Text(
-                  _isCreateAccount ? "Create Account" : "Login",
-                  style: CupertinoTheme.of(context).textTheme.navLargeTitleTextStyle.copyWith(
+                  _isCreateAccount ? "Create Account" : "Sign In",
+                  style: CupertinoTheme.of(context)
+                      .textTheme
+                      .navLargeTitleTextStyle
+                      .copyWith(
                     fontWeight: FontWeight.bold,
                     color: CupertinoColors.white,
                   ),
@@ -248,37 +268,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 _isLoading
                     ? CupertinoActivityIndicator(color: CupertinoColors.white)
                     : CupertinoButton.filled(
-                  child: Text(_isCreateAccount ? "Create Account" : "Login"),
+                  child: Text(_isCreateAccount ? "Create Account" : "Sign In"),
                   onPressed: _isCreateAccount ? _createAccount : _login,
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   borderRadius: BorderRadius.circular(15),
                 ),
-                if (_isCreateAccount) ...[
-                  CupertinoButton(
-                    child: Text("Cancel", style: TextStyle(color: CupertinoColors.white)),
-                    onPressed: () {
-                      setState(() {
-                        _isCreateAccount = false;
-                      });
-                    },
-                    color: CupertinoColors.destructiveRed,
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ],
-                if (!_isCreateAccount) ...[
-                  CupertinoButton(
-                    child: Text("Create Account", style: TextStyle(color: CupertinoColors.white)),
-                    onPressed: () {
-                      setState(() {
-                        _isCreateAccount = true;
-                      });
-                    },
-                    color: CupertinoColors.activeGreen,
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ],
               ],
             ],
           ),
